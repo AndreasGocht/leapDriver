@@ -19,13 +19,25 @@
     
 using namespace Leap;
 
+//settings
+
+
+float mouse_move_multipyer = 3;
+int mouse_move_smooth_value = 5;
+float mouse_move_value = 10;
+float mouse_click_prepare_value = -40;
+float mouse_click_value = -50;
+float mouse_click_release_value = -40;
+
+
+//glaibal values
+
 int fd;
 float old_x = 0;
 float old_y = 0;
 float old_z = 0;
-float dx_smooth[3];
-float dy_smooth[3];
-int smooth_size = 3;
+float *dx_smooth;
+float *dy_smooth;
 bool init = false;
 bool btn_left_click = false;
 bool btn_left_clicked = false;
@@ -33,15 +45,32 @@ bool btn_left_clicked = false;
 
 class SampleListener : public Listener {
     public:
-    virtual void onConnect(const Controller&);
-    virtual void onFrame(const Controller&);
+        virtual void onConnect(const Controller&);
+        virtual void onFrame(const Controller&);
+        void mouse_movement(Finger);
 };
 
 void SampleListener::onConnect(const Controller& controller) {
     std::cout << "Connected" << std::endl;
 }
 
+
 void SampleListener::onFrame(const Controller& controller) {
+    
+    const Frame frame = controller.frame();
+    
+    FingerList allTheFingers = frame.fingers().fingerType(Finger::TYPE_INDEX).extended();    
+    
+    for(Leap::FingerList::const_iterator fl = allTheFingers.begin(); fl != allTheFingers.end(); fl++)
+    {
+        mouse_movement(*fl);
+    }
+    
+}
+
+void SampleListener::mouse_movement(Leap::Finger finger)
+{
+    
     float dx_current = 0;
     float dy_current = 0;
     float z_abs = 0;
@@ -51,49 +80,102 @@ void SampleListener::onFrame(const Controller& controller) {
     
     struct input_event     ev;    
     
-    const Frame frame = controller.frame();
+    z_abs = (finger).tipPosition().z;
+    std::cout << "\r" << (int)z_abs << std::flush;
     
-    FingerList allTheFingers = frame.fingers().fingerType(Finger::TYPE_INDEX).extended();    
-    
-    for(Leap::FingerList::const_iterator fl = allTheFingers.begin(); fl != allTheFingers.end(); fl++)
+    if (z_abs > mouse_move_value )
     {
         
-        z_abs = (*fl).tipPosition().z;
-        std::cout << "\r" << (int)z_abs << std::flush;
-        
-        if (z_abs > 0 )
+        if (init==true)
         {
-            
-            if (init==true)
+            init = false;
+            for (int i = 0; i<mouse_move_smooth_value; i ++)
             {
-                init = false;
-                for (int i = 0; i<smooth_size; i ++)
+                dx_smooth[i] = 0;
+                dy_smooth[i] = 0;
+                old_x = 0;
+                old_y = 0; 
+            }
+        }
+    }
+    else
+    {
+        //dealing with Z values
+        // aclick migth happen.
+        if (z_abs < mouse_click_prepare_value)
+        {
+            if (z_abs != old_z)
+            {
+                
+                old_z = z_abs;
+                
+                
+                if ((z_abs < mouse_click_value) && (btn_left_clicked == false) )
+                {                           
+                    if (btn_left_click == false)
+                    {                    
+                        
+                        btn_left_click = true;
+                        
+                        memset(&ev, 0, sizeof(struct input_event));
+
+                        ev.type = EV_KEY;
+                        ev.code = BTN_LEFT;
+                        ev.value = 1;
+
+                        if(write(fd, &ev, sizeof(struct input_event)) < 0)
+                            die("error: write");
+                        
+                        some_change = true;
+                    
+                    }  
+                }
+                
+                if ((btn_left_click == true) && (btn_left_clicked == false))
                 {
-                    dx_smooth[i] = 0;
-                    dy_smooth[i] = 0;
+                    btn_left_click = false;
+                    btn_left_clicked = true;
+                    
+                    memset(&ev, 0, sizeof(struct input_event));
+
+                    ev.type = EV_KEY;
+                    ev.code = BTN_LEFT;
+                    ev.value = 0;
+
+                    if(write(fd, &ev, sizeof(struct input_event)) < 0)
+                        die("error: write");
+                    
+                    some_change = true;
                 }
             }
         }
-        else
+        
+        if ((z_abs > mouse_click_release_value) && (btn_left_clicked == true))
+        {
+                btn_left_clicked = false;
+        }
+
+        //freeze if a click migth happen
+        if (z_abs > mouse_click_prepare_value)
         {
             if (init == false)
             {
-                old_x = (*fl).tipPosition().x;
-                old_y = (*fl).tipPosition().y;
+                old_x = (finger).tipPosition().x;
+                old_y = (finger).tipPosition().y;
                 init = true;
             }
             else
             {
-                dx_current = - (old_x - (*fl).tipPosition().x) * 3;
-                dy_current = (old_y - (*fl).tipPosition().y) * 3;
+                dx_current = - (old_x - (finger).tipPosition().x) * mouse_move_multipyer;
+                dy_current = (old_y - (finger).tipPosition().y) * mouse_move_multipyer;
                 
-                old_x = (*fl).tipPosition().x;
-                old_y = (*fl).tipPosition().y;
+                old_x = (finger).tipPosition().x;
+                old_y = (finger).tipPosition().y;
                 
                 if ( (dx_current != 0) || (dy_current != 0) ) //TODO check fo z change
                 {
                     
-                    for (int i = 0; i<smooth_size-1; i++)
+                    for (int i = 0; i<mouse_move_smooth_value-1; i++)
                     {
                         dx_smooth[i] = dx_smooth[i+1];
                         dy_smooth[i] = dy_smooth[i+1];
@@ -101,13 +183,13 @@ void SampleListener::onFrame(const Controller& controller) {
                         dy += dy_smooth[i];
                     }
                     
-                    dx_smooth[smooth_size-1] = dx_current;
-                    dy_smooth[smooth_size-1] = dy_current;
+                    dx_smooth[mouse_move_smooth_value-1] = dx_current;
+                    dy_smooth[mouse_move_smooth_value-1] = dy_current;
                     dx += dx_current;
                     dy += dy_current;
                     
-                    dx = dx / smooth_size;
-                    dy = dy / smooth_size;
+                    dx = dx / mouse_move_smooth_value;
+                    dy = dy / mouse_move_smooth_value;
                     
                     memset(&ev, 0, sizeof(struct input_event));
                     ev.type = EV_REL;
@@ -124,76 +206,29 @@ void SampleListener::onFrame(const Controller& controller) {
                         die("error: write");
                     
                     some_change = true;
-                }
-                
-                if (z_abs != old_z)
-                {
-                    
-                    old_z = z_abs;
-                    
-                    
-                    if ((z_abs < -50) && (btn_left_clicked == false) )
-                    {                           
-                        
-                        
-                        if (btn_left_click == false)
-                        {
-                        
-                            
-                            btn_left_click = true;
-                            
-                            memset(&ev, 0, sizeof(struct input_event));
-
-                            ev.type = EV_KEY;
-                            ev.code = BTN_LEFT;
-                            ev.value = 1;
-
-                            if(write(fd, &ev, sizeof(struct input_event)) < 0)
-                                die("error: write");
-                        
-                        } else {
-                            btn_left_click = false;
-                            btn_left_clicked = true;
-                            
-                            memset(&ev, 0, sizeof(struct input_event));
-
-                            ev.type = EV_KEY;
-                            ev.code = BTN_LEFT;
-                            ev.value = 0;
-
-                            if(write(fd, &ev, sizeof(struct input_event)) < 0)
-                                die("error: write");
-                            
-                            some_change = true;
-                        }
-                        
-                        some_change = true;
-                                                
-                    } 
-                    else if ((z_abs > -40) && (btn_left_clicked == true))
-                    {
-                        btn_left_clicked = false;
-                    }
-                }
-                
-                if (some_change)
-                {
-
-                    memset(&ev, 0, sizeof(struct input_event));
-                    ev.type = EV_SYN;
-                    ev.code = 0;
-                    ev.value = 0;
-                    if(write(fd, &ev, sizeof(struct input_event)) < 0)
-                        die("error: write");
-                    
-                }
+                }                               
             }
         }
     }
+        
+    if (some_change)
+    {
+        memset(&ev, 0, sizeof(struct input_event));
+        ev.type = EV_SYN;
+        ev.code = 0;
+        ev.value = 0;
+        if(write(fd, &ev, sizeof(struct input_event)) < 0)
+            die("error: write");
+        
+    }
 }
+
 
 int main(int argc, char** argv) {
  
+    dx_smooth = new float[mouse_move_smooth_value];
+    dy_smooth = new float[mouse_move_smooth_value];
+    
     SampleListener listener;    
     Controller controller;
     
