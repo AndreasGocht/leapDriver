@@ -1,6 +1,5 @@
 #include <iostream>
-#include "Driver.h"    leapDriver::DriverTouch driver;
-
+#include "Driver.h"
 #include "DriverTouch.h"
 
 

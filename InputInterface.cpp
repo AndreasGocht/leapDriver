@@ -93,6 +93,34 @@ void InputInterface::btn_left_release()
 
 }
 
+void InputInterface::btn_doubletap_click()
+{
+    struct input_event     ev;
+	memset(&ev, 0, sizeof(struct input_event));
+
+	ev.type = EV_KEY;
+	ev.code = BTN_TOOL_DOUBLETAP;
+	ev.value = 1;
+
+	if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+		throw InputInterfaceError("error write", errno);
+
+}
+
+void InputInterface::btn_doubletap_release()
+{
+    struct input_event     ev;
+    memset(&ev, 0, sizeof(struct input_event));
+
+    ev.type = EV_KEY;
+    ev.code = BTN_TOOL_DOUBLETAP;
+    ev.value = 0;
+
+    if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+    	throw InputInterfaceError("error write", errno);
+
+}
+
 void InputInterface::move_rel(int dx, int dy)
 {
 	struct input_event     ev;

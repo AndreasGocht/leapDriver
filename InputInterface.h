@@ -30,6 +30,8 @@ namespace leapDriver{
 
 		void btn_left_click();
 		void btn_left_release();
+		void btn_doubletap_click();
+		void btn_doubletap_release();
 		void move_rel(int dx, int dy);
 		void sync();
 
