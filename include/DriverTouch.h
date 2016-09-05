@@ -8,8 +8,8 @@
 #ifndef DRIVERTOUCH_H_
 #define DRIVERTOUCH_H_
 
-#include "../LeapSDK/include/Leap.h"
-#include "InputInterface.h"
+#include <Leap.h>
+#include <InputInterface.h>
 
 namespace leapDriver
 {

@@ -8,8 +8,8 @@
 #ifndef DRIVER_H_
 #define DRIVER_H_
 
-#include "../LeapSDK/include/Leap.h"
-#include "InputInterface.h"
+#include <Leap.h>
+#include <InputInterface.h>
 #include <array>
 
 namespace leapDriver
