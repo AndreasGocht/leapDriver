@@ -104,7 +104,7 @@ private:
     bool btn_left_clicked = false;
 
     /** values for doubletap */
-    bool reinit_doubletap = false;
+    bool reinit_scroll = false;
     bool btn_doubletap_click = false;
     bool btn_doubletap_clicked = false;
 

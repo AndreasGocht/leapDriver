@@ -41,12 +41,12 @@ void Driver::onFrame(const Leap::Controller& controller) {
     if (allTheFingers.count() == 0)
     {
     	reinit = true;
-    	reinit_doubletap = true;
+    	reinit_scroll = true;
     	reinit_gesture = true;
     }
     else if(allTheFingers.count() == 1)
     {
-    	reinit_doubletap = true;
+    	reinit_scroll = true;
     	reinit_gesture = true;
 		for(Leap::FingerList::const_iterator fl = allTheFingers.begin(); fl != allTheFingers.end(); fl++)
 		{
@@ -60,7 +60,7 @@ void Driver::onFrame(const Leap::Controller& controller) {
     }
     else if (allTheFingers.count() == 5)
     {
-    	reinit_doubletap = true;
+    	reinit_scroll = true;
     	reinit = true;
     	gesture(allTheFingers);
     }
@@ -209,22 +209,22 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
     bool some_change = false;
 
     z_abs = (fingers[0].tipPosition().z + fingers[0].tipPosition().z) / 2;
-    x = (fingers[0].tipPosition().x + fingers[1].tipPosition().x)/2;
-    y = (fingers[0].tipPosition().y + fingers[1].tipPosition().y)/2;
 
     if (z_abs > mouse_move_value)
     {
-    	reinit_doubletap = true;
+    	reinit_scroll = true;
     	return;
     }
 
+    x = (fingers[0].tipPosition().x + fingers[1].tipPosition().x)/2;
+    y = (fingers[0].tipPosition().y + fingers[1].tipPosition().y)/2;
 
     /*
      * there where no finges on some previos frames ... reinit erverything
      */
-	if (reinit_doubletap==true)
+	if (reinit_scroll==true)
 	{
-		reinit_doubletap = false;
+		reinit_scroll = false;
 		for (int i = 0; i<mouse_move_smooth_value; i ++)
 		{
 			dx_smooth[i] = 0;
@@ -234,8 +234,6 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 		}
 	}
 
-	//dealing with Z values
-	// a click migth happen.
 	if (z_abs != old_z)
 	{
 		old_z = z_abs;
@@ -245,6 +243,8 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 			dy_current = (old_y - y) * mouse_scroll_multipyer;
 			dx_current = - (old_x - x) * mouse_scroll_multipyer;
 			old_y = y;
+			old_x = x;
+
 			if ( (dy_current != 0) )
 			{
 
