@@ -6,7 +6,7 @@
  */
 
 #include "Driver.h"
-#include <math.h>
+#include <cmath>
 
 namespace leapDriver
 {
@@ -28,7 +28,7 @@ void Driver::onConnect(const Leap::Controller& controller) {
 }
 
 /*
- * calles on new Frame from leap
+ * called on new Frame from leap
  *
  * calls for every finger mouse_movement
  */
@@ -56,7 +56,7 @@ void Driver::onFrame(const Leap::Controller& controller) {
     {
     	reinit_gesture = true;
     	reinit = true;
-    	doubletap_movement(allTheFingers);
+    	mouse_scroll_movement(allTheFingers);
     }
     else if (allTheFingers.count() == 5)
     {
@@ -191,9 +191,13 @@ void Driver::mouse_movement(Leap::Finger finger)
  * doesn't work ... take a look to the synaptics driver
  * http://lxr.free-electrons.com/source/drivers/input/mouse/synaptics.c#L1070
  *
+ * http://linuxwacom.sourceforge.net/wiki/index.php/Kernel_Input_Event_Overview
+ *
  * and figure out what to do
+ *
+ * TODO scroling works ... clean up!
  */
-void Driver::doubletap_movement(Leap::FingerList fingers)
+void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 {
     float dx_current = 0;
     float dy_current = 0;
@@ -236,60 +240,37 @@ void Driver::doubletap_movement(Leap::FingerList fingers)
 	{
 		old_z = z_abs;
 
-		if ((z_abs < doubletap_thresold))
+		if ((z_abs < mouse_wheel_thresold))
 		{
-			if (btn_doubletap_click == false)
-			{
-				btn_doubletap_click = true;
-				input.btn_doubletap_click();
-				some_change = true;
-				std::cout << "doubletap click" << std::endl;
-			}
-		}
-		else
-		{
-			if(btn_doubletap_click == true)
+			dy_current = (old_y - y) * mouse_scroll_multipyer;
+			dx_current = - (old_x - x) * mouse_scroll_multipyer;
+			old_y = y;
+			if ( (dy_current != 0) )
 			{
 
-				btn_doubletap_click = false;
-				input.btn_doubletap_release();
+				for (int i = 0; i<mouse_move_smooth_value-1; i++)
+				{
+					dx_smooth[i] = dx_smooth[i+1];
+					dy_smooth[i] = dy_smooth[i+1];
+					dx += dx_smooth[i];
+					dy += dy_smooth[i];
+				}
+
+				dx_smooth[mouse_move_smooth_value-1] = dx_current;
+				dy_smooth[mouse_move_smooth_value-1] = dy_current;
+				dx += dx_current;
+				dy += dy_current;
+
+				dx = dx / mouse_move_smooth_value;
+				dy = dy / mouse_move_smooth_value;
+
+				input.move_rel_vert_wheel((int) std::round(dy));
+				input.move_rel_hor_wheel((int) std::round(dx));
+
 				some_change = true;
-				std::cout << "doubletap release" << std::endl;
 			}
 		}
-	}
 
-	/*
-	 * just compute dx and dy if no click migth happen
-	 */
-	dx_current = - (old_x - x) * mouse_move_multipyer;
-	dy_current = (old_y - y) * mouse_move_multipyer;
-
-	old_x = x;
-	old_y = y;
-
-	if ( (dx_current != 0) || (dy_current != 0) ) //TODO check fo z change
-	{
-
-		for (int i = 0; i<mouse_move_smooth_value-1; i++)
-		{
-			dx_smooth[i] = dx_smooth[i+1];
-			dy_smooth[i] = dy_smooth[i+1];
-			dx += dx_smooth[i];
-			dy += dy_smooth[i];
-		}
-
-		dx_smooth[mouse_move_smooth_value-1] = dx_current;
-		dy_smooth[mouse_move_smooth_value-1] = dy_current;
-		dx += dx_current;
-		dy += dy_current;
-
-		dx = dx / mouse_move_smooth_value;
-		dy = dy / mouse_move_smooth_value;
-
-		input.move_rel((int) dx, (int) dy);
-
-		some_change = true;
 	}
 
     if (some_change)

@@ -1,12 +1,10 @@
 #include <iostream>
-#include "Driver.h"
-#include "DriverTouch.h"
+#include <Driver.h>
 
 
 int main(int argc, char** argv) {
 
     leapDriver::Driver driver;
-    //leapDriver::DriverTouch driver;
 
     Leap::Controller controller;
     

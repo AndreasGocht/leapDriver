@@ -5,7 +5,7 @@
  *      Author: andreas
  */
 
-#include "InputInterface.h"
+#include <InputInterface.h>
 #include <linux/input.h>
 #include <linux/uinput.h>
 #include <fcntl.h>
@@ -38,6 +38,9 @@ InputInterface::InputInterface() {
     	throw InputInterfaceError("error ioctl",errno);
     if(ioctl(this->file, UI_SET_RELBIT, REL_Y) < 0)
     	throw InputInterfaceError("error ioctl",errno);
+    if(ioctl(this->file, UI_SET_RELBIT, REL_WHEEL) < 0)
+    	throw InputInterfaceError("error ioctl",errno);
+
 
     struct uinput_user_dev uidev;
 
@@ -118,8 +121,42 @@ void InputInterface::btn_doubletap_release()
 
     if(write(this->file, &ev, sizeof(struct input_event)) < 0)
     	throw InputInterfaceError("error write", errno);
-
 }
+
+/** vertical wheel movement
+ *
+ * @param: vertical movement
+ */
+void InputInterface::move_rel_vert_wheel(int dv)
+{
+	struct input_event     ev;
+    memset(&ev, 0, sizeof(struct input_event));
+
+    ev.type = EV_REL;
+    ev.code = REL_WHEEL;
+    ev.value = dv;
+
+    if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+        throw InputInterfaceError("error write", errno);
+}
+
+/** horizontal wheel movement
+ *
+ * @param: vertical movement
+ */
+void InputInterface::move_rel_hor_wheel(int dh)
+{
+	struct input_event     ev;
+    memset(&ev, 0, sizeof(struct input_event));
+
+    ev.type = EV_REL;
+    ev.code = REL_HWHEEL;
+    ev.value = dh;
+
+    if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+        throw InputInterfaceError("error write", errno);
+}
+
 
 void InputInterface::move_rel(int dx, int dy)
 {

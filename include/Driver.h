@@ -66,7 +66,7 @@ public:
     virtual void onConnect(const Leap::Controller& );
     virtual void onFrame(const Leap::Controller&);
     void mouse_movement(Leap::Finger);
-    void doubletap_movement(Leap::FingerList);
+    void mouse_scroll_movement(Leap::FingerList);
     void gesture(Leap::FingerList);
 
 private:
@@ -76,14 +76,15 @@ private:
     /** const values */
     /** values for mouse movements*/
     const float mouse_move_multipyer = 3;
+    const float mouse_scroll_multipyer = 0.5;
     const int mouse_move_smooth_value = 5;
-    const float mouse_move_value = 5;
+    const float mouse_move_value = 20;
     const float mouse_click_prepare_value = -40;
     const float mouse_click_value = -50;
     const float mouse_click_release_value = -40;
 
     /** values for doubletap*/
-    const float doubletap_thresold = -50;
+    const float mouse_wheel_thresold = -40;
 
     /** values for gestures*/
     const float vol_up_thr = 30; /** rotate about vol_up_thr degrees to trigger vol_up*/

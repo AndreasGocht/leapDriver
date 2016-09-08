@@ -13,7 +13,6 @@ find_library(LEAP_LIB Leap HINTS ${LEAP_SDK_ROOT}/lib/x64/)
 
 set(SRC
     src/Driver.cpp
-    src/DriverTouch.cpp
     src/InputInterface.cpp
     src/main.cpp
     )
