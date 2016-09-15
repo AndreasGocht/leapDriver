@@ -11,6 +11,7 @@
 #include <Leap.h>
 #include <InputInterface.h>
 #include <array>
+#include <mutex>
 
 namespace leapDriver
 {
@@ -76,7 +77,7 @@ private:
     /** const values */
     /** values for mouse movements*/
     const float mouse_move_multipyer = 3;
-    const float mouse_scroll_multipyer = 0.5;
+    const float mouse_scroll_multipyer = 1;
     const int mouse_move_smooth_value = 5;
     const float mouse_move_value = 20;
     const float mouse_click_prepare_value = -40;
@@ -89,6 +90,8 @@ private:
     /** values for gestures*/
     const float vol_up_thr = 30; /** rotate about vol_up_thr degrees to trigger vol_up*/
 
+
+    std::mutex mutex;
 
     /**changing values */
     /** common moving values for mouse and doubletap */

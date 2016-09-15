@@ -8,6 +8,7 @@
 #include "Driver.h"
 #include <cmath>
 
+
 namespace leapDriver
 {
 
@@ -27,13 +28,22 @@ void Driver::onConnect(const Leap::Controller& controller) {
     std::cout << "Connected" << std::endl;
 }
 
-/*
- * called on new Frame from leap
+/* This function is called each time a frame shall be processed.
  *
- * calls for every finger mouse_movement
+ * It is the main processing function, and therfore cares for
+ * thread ssafty.
+ *
  */
-void Driver::onFrame(const Leap::Controller& controller) {
+void Driver::process(const Leap::Controller& controller) {
 
+	/* try to lock the mutex
+	 * if we still doning computation, skip this frame
+	 */
+	if (!mutex.try_lock())
+	{
+		std::cout << "missed";
+		return;
+	}
     const Leap::Frame frame = controller.frame();
 
     Leap::FingerList allTheFingers = frame.fingers().extended();
@@ -64,6 +74,8 @@ void Driver::onFrame(const Leap::Controller& controller) {
     	reinit = true;
     	gesture(allTheFingers);
     }
+
+    mutex.unlock();
 
 }
 
