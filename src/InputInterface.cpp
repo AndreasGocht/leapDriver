@@ -17,8 +17,7 @@
 namespace leapDriver
 {
 
-/**
- * Initialise the uinput interface, and registers different allowed keys and events
+/** Initialise the uinput interface, and registers different allowed keys and events
  */
 InputInterface::InputInterface() {
     //connect to system before the listerner creates a new event.
@@ -60,14 +59,16 @@ InputInterface::InputInterface() {
     	throw InputInterfaceError("error ioctl", errno);
 }
 
-/*
- * closes the uinput interface
+/** closes the uinput interface
  */
 InputInterface::~InputInterface() {
     if(ioctl(this->file, UI_DEV_DESTROY) < 0)
     	throw InputInterfaceError("error ioctl", errno);
 }
 
+/** Sends a button left click
+ *
+ */
 void InputInterface::btn_left_click()
 {
     struct input_event     ev;
@@ -82,6 +83,9 @@ void InputInterface::btn_left_click()
 
 }
 
+/** Sends a button left release
+ *
+ */
 void InputInterface::btn_left_release()
 {
     struct input_event     ev;
@@ -96,6 +100,9 @@ void InputInterface::btn_left_release()
 
 }
 
+/** Sends a button double tap click
+ *
+ */
 void InputInterface::btn_doubletap_click()
 {
     struct input_event     ev;
@@ -110,6 +117,9 @@ void InputInterface::btn_doubletap_click()
 
 }
 
+/** Sends a button double tap release
+ *
+ */
 void InputInterface::btn_doubletap_release()
 {
     struct input_event     ev;
@@ -158,6 +168,12 @@ void InputInterface::move_rel_hor_wheel(int dh)
 }
 
 
+/** relative muse movement,
+ *
+ * @param dx movement since last update in x
+ * @param dy movement since last update in y
+ *
+ */
 void InputInterface::move_rel(int dx, int dy)
 {
 	struct input_event     ev;
@@ -176,6 +192,9 @@ void InputInterface::move_rel(int dx, int dy)
         throw InputInterfaceError("error write", errno);
 }
 
+/** Synchronizes the different informations with the kernel.
+ *
+ */
 void InputInterface::sync()
 {
 	struct input_event     ev;

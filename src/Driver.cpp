@@ -82,8 +82,16 @@ void Driver::run()
 
 /* This function is called each time a frame shall be processed.
  *
- * It is the main processing function, and therfore cares for
- * thread ssafty.
+ * It is the main processing function, and therefore cares for
+ * thread safety.
+ *
+ * It distinguishes between four different cases:
+ *
+ * * one finger in the field: classical relative movement
+ * * two finger : scrolling
+ * * five fingers gestures
+ * * zero fingers: re init
+ *
  *
  */
 void Driver::process() {
@@ -131,6 +139,12 @@ void Driver::process() {
 
 }
 
+/**This function simulates classical mouse movement.
+ *
+ * @param finger a single finger responsible for the movements and
+ * clicks
+ *
+ */
 void Driver::mouse_movement(Leap::Finger finger)
 {
 
@@ -251,15 +265,9 @@ void Driver::mouse_movement(Leap::Finger finger)
     }
 }
 
-/**
- * doesn't work ... take a look to the synaptics driver
- * http://lxr.free-electrons.com/source/drivers/input/mouse/synaptics.c#L1070
+/** Implements scrolling with two fingers
  *
- * http://linuxwacom.sourceforge.net/wiki/index.php/Kernel_Input_Event_Overview
- *
- * and figure out what to do
- *
- * TODO scroling works ... clean up!
+ * @param fingers the fingers of the heand responsible for scrolling
  */
 void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 {
@@ -343,7 +351,14 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
     }
 }
 
-
+/** processing of gestures.
+ *
+ * Implements at the moment processing of rotating hands.
+ * No actions jet.
+ *
+ * @param fingers fingers in the movement
+ *
+ */
 void Driver::gesture(Leap::FingerList fingers)
 {
 	/*
@@ -417,8 +432,8 @@ void Driver::gesture(Leap::FingerList fingers)
 				vol_up = false;
 			}
 		}
-		std::cout << vol_up;
-		std::cout << std::endl;
+//		std::cout << vol_up;
+//		std::cout << std::endl;
 
 		std::copy(finger_postitons.begin(),finger_postitons.end(),old_finger_postitons.begin());
 	}
