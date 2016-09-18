@@ -15,7 +15,7 @@ a small uinput driver for the LeapMotion
 ```
   sudo chmod a+rw /dev/uinput
   sudo leapd &
-  ./leapdriver
+  ./leapdriver -c ../config.json
 ```
 # Updates
 
