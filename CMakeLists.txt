@@ -6,6 +6,8 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall")
 
 set(LEAP_SDK_ROOT ../LeapSDK)
 
+find_package (Threads)
+
 include_directories(include/)
 
 include_directories(${LEAP_SDK_ROOT}/include/)
@@ -18,4 +20,4 @@ set(SRC
     )
 
 add_executable(leapdriver ${SRC})
-target_link_libraries(leapdriver ${LEAP_LIB})
+target_link_libraries(leapdriver ${LEAP_LIB} ${CMAKE_THREAD_LIBS_INIT})

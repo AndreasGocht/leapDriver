@@ -12,6 +12,8 @@
 #include <InputInterface.h>
 #include <array>
 #include <mutex>
+#include <atomic>
+#include <thread>
 
 namespace leapDriver
 {
@@ -65,14 +67,19 @@ public:
 	virtual ~Driver();
 
     virtual void onConnect(const Leap::Controller& );
-    virtual void onFrame(const Leap::Controller&);
+    virtual void onDisconnect(const Leap::Controller& );
+
+    void run();
+
+    void process();
     void mouse_movement(Leap::Finger);
     void mouse_scroll_movement(Leap::FingerList);
     void gesture(Leap::FingerList);
 
 private:
     InputInterface input;
-
+    Leap::Controller controller;
+    std::thread mainThread;
 
     /** const values */
     /** values for mouse movements*/
@@ -91,7 +98,9 @@ private:
     const float vol_up_thr = 30; /** rotate about vol_up_thr degrees to trigger vol_up*/
 
 
-    std::mutex mutex;
+    std::mutex processMutex;
+    std::mutex connectionMutex;
+    std::atomic_bool connected;
 
     /**changing values */
     /** common moving values for mouse and doubletap */

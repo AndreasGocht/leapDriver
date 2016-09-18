@@ -5,8 +5,9 @@
  *      Author: andreas
  */
 
-#include "Driver.h"
+#include <Driver.h>
 #include <cmath>
+
 
 
 namespace leapDriver
@@ -15,17 +16,68 @@ namespace leapDriver
 Driver::Driver():Listener() {
     dx_smooth = new float[mouse_move_smooth_value];
     dy_smooth = new float[mouse_move_smooth_value];
+    connected = false;
  }
 
 Driver::~Driver() {
+	//simulate disconnect behavior.
+	onDisconnect(controller);
 }
 
 
-/*
- * called on leap Connection
+/* This function controlls the leap connect event.
+ *
  */
 void Driver::onConnect(const Leap::Controller& controller) {
-    std::cout << "Connected" << std::endl;
+
+	/** Check if the mainthread is jonable. If not nothing is running
+	 * and it is supposingly safe to create a new thread. I am not sure here.
+	 *
+	 */
+    if(!mainThread.joinable())
+    {
+    	connected = true;
+    	std::cout << "Connected" << std::endl;
+    	mainThread = std::thread(&Driver::run,this);
+    }
+    else
+    {
+    	std::cout<< "old thread still running, doing nothing" << std::endl;
+    }
+
+}
+
+/*this function sets connected to false
+ *
+ */
+void Driver::onDisconnect(const Leap::Controller& controller)
+{
+	connected = false;
+	//wait for the old process to finish
+	if(mainThread.joinable())
+		mainThread.join();
+
+	std::cout << "Disconnected" << std::endl;
+}
+
+/* This function is called by onConnect, and calls process.
+ *
+ * This function runs as long as connected is true.
+ * connected is set by onConnect and onDisconnect.
+ *
+ * The function gets the current timepoint, calls process, and
+ * then sleeps timepoint + 20 ms
+ *
+ *
+ */
+void Driver::run()
+{
+	while(connected)
+	{
+		auto get_next_frame = std::chrono::steady_clock::now() + std::chrono::milliseconds(20);
+		process();
+		std::this_thread::sleep_until(get_next_frame);
+	}
 }
 
 /* This function is called each time a frame shall be processed.
@@ -34,12 +86,12 @@ void Driver::onConnect(const Leap::Controller& controller) {
  * thread ssafty.
  *
  */
-void Driver::process(const Leap::Controller& controller) {
+void Driver::process() {
 
 	/* try to lock the mutex
 	 * if we still doning computation, skip this frame
 	 */
-	if (!mutex.try_lock())
+	if (!processMutex.try_lock())
 	{
 		std::cout << "missed";
 		return;
@@ -75,7 +127,7 @@ void Driver::process(const Leap::Controller& controller) {
     	gesture(allTheFingers);
     }
 
-    mutex.unlock();
+    processMutex.unlock();
 
 }
 
