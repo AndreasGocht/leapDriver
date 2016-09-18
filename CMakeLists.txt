@@ -2,16 +2,22 @@ project (leapDriver)
 
 cmake_minimum_required(VERSION 2.8)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -g -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -g -Wall")
 
 set(LEAP_SDK_ROOT ../LeapSDK)
 
 find_package (Threads)
 
+SET(JSON "external/json")
+
 include_directories(include/)
 
 include_directories(${LEAP_SDK_ROOT}/include/)
 find_library(LEAP_LIB Leap HINTS ${LEAP_SDK_ROOT}/lib/x64/)
+
+message(STATUS "Looking for json")
+execute_process(COMMAND git submodule update --init "${CMAKE_SOURCE_DIR}/${JSON}")
+include_directories(${JSON}/src)
 
 set(SRC
     src/Driver.cpp

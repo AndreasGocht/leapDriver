@@ -21,13 +21,13 @@ namespace leapDriver
 struct spherical{
 	spherical()
 	{}
-	spherical(float r,float phi, float psi):
+	spherical(double r,double phi, double psi):
 		r(r),phi(phi),psi(psi)
 	{}
 
-	float r = 0;
-	float phi = 0;
-	float psi = 0;
+	double r = 0;
+	double phi = 0;
+	double psi = 0;
 
 	spherical operator-(spherical s2)
 	{
@@ -50,7 +50,7 @@ struct spherical{
 	}
 
 	private:
-	float circle360(float val)
+	double circle360(double val)
 	{
 		if (val < 0)
 			return val + 360;
@@ -64,6 +64,7 @@ struct spherical{
 class Driver:public Leap::Listener {
 public:
 	Driver();
+	Driver(std::string config_path);
 	virtual ~Driver();
 
     virtual void onConnect(const Leap::Controller& );
@@ -76,26 +77,30 @@ public:
     void mouse_scroll_movement(Leap::FingerList);
     void gesture(Leap::FingerList);
 
+    void load_config();
+
 private:
     InputInterface input;
     Leap::Controller controller;
     std::thread mainThread;
 
+    std::string config_path;
+
     /** const values */
     /** values for mouse movements*/
-    const float mouse_move_multipyer = 3;
-    const float mouse_scroll_multipyer = 1;
-    const int mouse_move_smooth_value = 5;
-    const float mouse_move_value = 20;
-    const float mouse_click_prepare_value = -40;
-    const float mouse_click_value = -50;
-    const float mouse_click_release_value = -40;
+    double mouse_move_multipyer;
+    double mouse_scroll_multipyer;
+    int mouse_move_smooth_value;
+    int mouse_scroll_smooth_value;
+    double mouse_move_threashold;
+    double mouse_click_prepare_value;
+    double mouse_click_value;
+    double mouse_click_release_value;
 
-    /** values for doubletap*/
-    const float mouse_wheel_thresold = -40;
+    double mouse_wheel_thresold = -40;
 
     /** values for gestures*/
-    const float vol_up_thr = 30; /** rotate about vol_up_thr degrees to trigger vol_up*/
+    double vol_up_thr = 30; /** rotate about vol_up_thr degrees to trigger vol_up*/
 
 
     std::mutex processMutex;
@@ -104,11 +109,11 @@ private:
 
     /**changing values */
     /** common moving values for mouse and doubletap */
-    float old_x = 0;
-    float old_y = 0;
-    float old_z = 0;
-    float *dx_smooth;
-    float *dy_smooth;
+    double old_x = 0;
+    double old_y = 0;
+    double old_z = 0;
+    std::vector<double> dx_smooth;
+    std::vector<double> dy_smooth;
 
     /** values for mouse movement*/
     bool reinit = false;
@@ -124,7 +129,6 @@ private:
     bool reinit_gesture = false;
     std::array<spherical,5> old_finger_postitons;
     std::array<spherical,5> incr_finger_postitons;
-
 
 };
 }

@@ -7,17 +7,31 @@
 
 #include <Driver.h>
 #include <cmath>
+#include <json.hpp>
+#include <fstream>
 
 
 
 namespace leapDriver
 {
 
-Driver::Driver():Listener() {
-    dx_smooth = new float[mouse_move_smooth_value];
-    dy_smooth = new float[mouse_move_smooth_value];
-    connected = false;
- }
+using json = nlohmann::json;
+
+Driver::Driver():
+		Listener(),
+		config_path(""),
+		connected(false)
+{
+	load_config();
+}
+
+Driver::Driver(std::string config_path):
+		Listener(),
+		config_path(config_path),
+		connected(false)
+{
+	load_config();
+}
 
 Driver::~Driver() {
 	//simulate disconnect behavior.
@@ -148,19 +162,16 @@ void Driver::process() {
 void Driver::mouse_movement(Leap::Finger finger)
 {
 
-    float dx_current = 0;
-    float dy_current = 0;
-    float z_abs = 0;
-    float dx = 0;
-    float dy = 0;
+    double dx_current = 0;
+    double dy_current = 0;
+    double z_abs = 0;
+    double dx = 0;
+    double dy = 0;
     bool some_change = false;
 
     z_abs = (finger).tipPosition().z;
-//    std::cout << "\r" << z_abs << std::flush;
-//    std::cout << (int)z_abs << std::endl;
 
-
-    if (z_abs > mouse_move_value)
+    if (z_abs > mouse_move_threashold)
     {
     	reinit = true;
     	return;
@@ -168,18 +179,19 @@ void Driver::mouse_movement(Leap::Finger finger)
 
 
     /*
-     * there where no finges on some previos frames ... reinit erverything
+     * there where no fingers on some previous frames ... reinit erverything
      */
 	if (reinit==true)
 	{
 		reinit = false;
-		for (int i = 0; i<mouse_move_smooth_value; i ++)
-		{
-			dx_smooth[i] = 0;
-			dy_smooth[i] = 0;
-			old_x = (finger).tipPosition().x;
-			old_y = (finger).tipPosition().y;
-		}
+
+		dx_smooth.clear();
+		dy_smooth.clear();
+		dx_smooth.resize(mouse_move_smooth_value,0);
+		dy_smooth.resize(mouse_move_smooth_value,0);
+
+		old_x = (finger).tipPosition().x;
+		old_y = (finger).tipPosition().y;
 	}
 
 	//dealing with Z values
@@ -271,18 +283,18 @@ void Driver::mouse_movement(Leap::Finger finger)
  */
 void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 {
-    float dx_current = 0;
-    float dy_current = 0;
-    float z_abs = 0;
-    float dx = 0;
-    float dy = 0;
-    float x;
-    float y;
+    double dx_current = 0;
+    double dy_current = 0;
+    double z_abs = 0;
+    double dx = 0;
+    double dy = 0;
+    double x;
+    double y;
     bool some_change = false;
 
     z_abs = (fingers[0].tipPosition().z + fingers[0].tipPosition().z) / 2;
 
-    if (z_abs > mouse_move_value)
+    if (z_abs > mouse_move_threashold)
     {
     	reinit_scroll = true;
     	return;
@@ -297,13 +309,14 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 	if (reinit_scroll==true)
 	{
 		reinit_scroll = false;
-		for (int i = 0; i<mouse_move_smooth_value; i ++)
-		{
-			dx_smooth[i] = 0;
-			dy_smooth[i] = 0;
-			old_x = x;
-			old_y = y;
-		}
+
+		dx_smooth.clear();
+		dy_smooth.clear();
+		dx_smooth.resize(mouse_scroll_smooth_value,0);
+		dy_smooth.resize(mouse_scroll_smooth_value,0);
+
+		old_x = x;
+		old_y = y;
 	}
 
 	if (z_abs != old_z)
@@ -320,7 +333,7 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 			if ( (dy_current != 0) )
 			{
 
-				for (int i = 0; i<mouse_move_smooth_value-1; i++)
+				for (int i = 0; i<mouse_scroll_smooth_value-1; i++)
 				{
 					dx_smooth[i] = dx_smooth[i+1];
 					dy_smooth[i] = dy_smooth[i+1];
@@ -328,13 +341,13 @@ void Driver::mouse_scroll_movement(Leap::FingerList fingers)
 					dy += dy_smooth[i];
 				}
 
-				dx_smooth[mouse_move_smooth_value-1] = dx_current;
-				dy_smooth[mouse_move_smooth_value-1] = dy_current;
+				dx_smooth[mouse_scroll_smooth_value-1] = dx_current;
+				dy_smooth[mouse_scroll_smooth_value-1] = dy_current;
 				dx += dx_current;
 				dy += dy_current;
 
-				dx = dx / mouse_move_smooth_value;
-				dy = dy / mouse_move_smooth_value;
+				dx = dx / mouse_scroll_smooth_value;
+				dy = dy / mouse_scroll_smooth_value;
 
 				input.move_rel_vert_wheel((int) std::round(dy));
 				input.move_rel_hor_wheel((int) std::round(dx));
@@ -365,9 +378,9 @@ void Driver::gesture(Leap::FingerList fingers)
 	 * get the center of the fingers
 	 */
 
-	float x_center = 0;
-	float y_center = 0;
-	float z_center = 0;
+	double x_center = 0;
+	double y_center = 0;
+	double z_center = 0;
 
 
 	for (Leap::FingerList::const_iterator it = fingers.begin(); it != fingers.end(); it++ )
@@ -438,9 +451,61 @@ void Driver::gesture(Leap::FingerList fingers)
 		std::copy(finger_postitons.begin(),finger_postitons.end(),old_finger_postitons.begin());
 	}
 
+}
 
+void Driver::load_config()
+{
+	std::ifstream file(config_path);
+	json j;
 
+	try{
+		if (!file)
+		{
+			throw std::runtime_error(std::string("Can't open file: ") + std::string(strerror(errno)));
+		}
+		j = json::parse(file);
+
+		mouse_move_multipyer 		= j["mouse_move_multipyer"];
+		mouse_scroll_multipyer 		= j["mouse_scroll_multipyer"];
+		mouse_move_smooth_value 	= j["mouse_move_smooth_value"];
+		mouse_scroll_smooth_value 	= j["mouse_scroll_smooth_value"];
+		mouse_move_threashold 		= j["mouse_move_threashold"];
+		mouse_click_prepare_value 	= j["mouse_click_prepare_value"];
+		mouse_click_value 			= j["mouse_click_value"];
+		mouse_click_release_value 	= j["mouse_click_release_value"];
+		mouse_wheel_thresold 		= j["mouse_wheel_thresold"];
+		vol_up_thr 					= j["vol_up_thr"];
+
+		file.close();
+
+	}
+	catch (std::exception& e)
+	{
+		/* if anything wents wrong lets hope for an exception.
+		 * Lets catch it and print an error (avoiding killing the whole
+		 * program.
+		 */
+		std::cout << "Something went wrong loading config file:\n"
+				<< "Caught an ios_base::failure.\n"
+				<< "Explanatory string: " << e.what() << "\n"
+				<< "In file:\"" << config_path << "\" \n"
+				<< "loading default!." <<std::endl;
+
+		mouse_move_multipyer = 3;
+		mouse_scroll_multipyer = 1;
+		mouse_move_smooth_value = 5;
+		mouse_scroll_smooth_value = 3;
+		mouse_move_threashold = 20;
+		mouse_click_prepare_value = -40;
+		mouse_click_value = -50;
+		mouse_click_release_value = -40;
+		mouse_wheel_thresold = -40;
+		vol_up_thr = 30;
+
+		return;
+	}
 
 }
+
 
 }
