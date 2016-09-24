@@ -1,8 +1,8 @@
 ## leapDriver
 a small uinput driver for the LeapMotion
 
-# Install
-* get the LeapMotion SDK, install, and place "LepaSDK" in "../"
+# Compilation
+* get the LeapMotion SDK, install, and place "LepaSDK" in "external/"
 
 ```
   mkdir build
@@ -10,8 +10,17 @@ a small uinput driver for the LeapMotion
   cmake ../
   make
 ```
+
+#Installation
+
+
+```
+  sudo make install
+```
+
   
-# Run
+# Ru n
+If Installed with "make install" this is not necessary
 ```
   sudo chmod a+rw /dev/uinput
   sudo leapd &
