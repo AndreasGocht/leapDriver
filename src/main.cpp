@@ -5,6 +5,17 @@
 #include <log.h>
 #include <memory>
 
+void print_help(int argc, char** argv)
+{
+	std::cout << std::string(argv[0]) << " [-c <config.json>] [-d debug level]\n";
+	std::cout << "\t -c path to the configuration \n";
+	std::cout << "\t -d debug level. One of: \n";
+	std::cout << "\t\t DEBUG, INFO, WARN, ERROR \n";
+	std::cout << "\t -h this help \n";
+	std::cout << std::endl;
+	exit(0);
+}
+
 int main(int argc, char** argv) {
 
 	std::string config_path;
@@ -13,13 +24,16 @@ int main(int argc, char** argv) {
 	std::unique_ptr<Leap::Controller> controller;
 	int opt;
 
-    while ((opt = getopt(argc, argv, "c:d:")) != -1) {
+    while ((opt = getopt(argc, argv, "c:d:h")) != -1) {
         switch (opt) {
         case 'c':
         	config_path = std::string(optarg);
             break;
         case 'd':
         	debug_level = std::string(optarg);
+            break;
+        case 'h':
+        	print_help(argc, argv);
             break;
         default: /* '?' */
         	break;

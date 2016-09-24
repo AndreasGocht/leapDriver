@@ -485,9 +485,9 @@ void Driver::load_config()
 		 * Lets catch it and print an error (avoiding killing the whole
 		 * program.
 		 */
-		logging::error() << "[Driver] Something went wrong while loading the configuration";
-		logging::error() << "[Driver] " << e.what();
-		logging::error() << "[Driver] Loading default!.";
+		logging::warn() << "[Driver] Something went wrong while loading the configuration";
+		logging::warn() << "[Driver] " << e.what();
+		logging::warn() << "[Driver] Loading default!.";
 
 		mouse_move_multipyer = 3;
 		mouse_scroll_multipyer = 1;
