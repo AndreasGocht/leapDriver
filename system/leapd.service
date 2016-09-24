@@ -1,0 +1,10 @@
+[Unit] 
+Description=Leap Motion Deamon
+
+[Service]
+Type=simple
+Environment=LC_ALL=C
+ExecStart=/usr/sbin/leapd
+
+[Install]
+WantedBy=graphical.target

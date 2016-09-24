@@ -15,6 +15,7 @@ SET(NITRO "external/nitro")
 include_directories(include/)
 
 include_directories(${LEAP_SDK_ROOT}/include/)
+
 find_library(LEAP_LIB Leap HINTS ${LEAP_SDK_ROOT}/lib/x64/)
 
 message(STATUS "Looking for json")
@@ -34,3 +35,21 @@ set(SRC
 
 add_executable(leapdriver ${SRC})
 target_link_libraries(leapdriver ${LEAP_LIB} ${CMAKE_THREAD_LIBS_INIT})
+
+install(TARGETS leapdriver
+        RUNTIME DESTINATION bin)
+        
+install(FILES ${LEAP_LIB}
+        DESTINATION /usr/local/lib/)
+        
+        
+install(FILES leap_driver_config.json DESTINATION /etc/)
+install(FILES system/leap_driver.service system/leapd.service DESTINATION /lib/systemd/system/)
+
+install(CODE "
+    MESSAGE(\"Running ldconfig.\")
+    execute_process(COMMAND ldconfig)
+    MESSAGE(\"Register with systemd.\")
+    execute_process(COMMAND systemctl enable leapd.service)
+    execute_process(COMMAND systemctl enable leap_driver.service)
+    execute_process(COMMAND systemctl start leap_driver.service)")

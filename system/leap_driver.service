@@ -1,0 +1,10 @@
+[Unit] 
+Description=Leap Motion Driver
+Requires=leapd.service
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/leapdriver -c /etc/leap_driver_config.json -d WARN
+
+[Install]
+WantedBy=graphical.target
