@@ -12,6 +12,7 @@
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
+#include <log.h>
 
 
 namespace leapDriver
@@ -24,7 +25,7 @@ InputInterface::InputInterface() {
 
     this->file = open("/dev/uinput", O_WRONLY | O_NONBLOCK);
     if(this->file < 0) {
-    	throw InputInterfaceError("error open",errno);
+    	throw InputInterfaceError("error opening /dev/uinput",errno);
     }
 
     if(ioctl(this->file, UI_SET_EVBIT, EV_KEY) < 0)

@@ -9,7 +9,7 @@
 #include <cmath>
 #include <json.hpp>
 #include <fstream>
-
+#include <log.h>
 
 
 namespace leapDriver
@@ -51,12 +51,12 @@ void Driver::onConnect(const Leap::Controller& controller) {
     if(!mainThread.joinable())
     {
     	connected = true;
-    	std::cout << "Connected" << std::endl;
+    	logging::info() << "[Driver] Connected" ;
     	mainThread = std::thread(&Driver::run,this);
     }
     else
     {
-    	std::cout<< "old thread still running, doing nothing" << std::endl;
+    	logging::error() << "[Driver] Old thread still running, doing nothing";
     }
 
 }
@@ -71,7 +71,7 @@ void Driver::onDisconnect(const Leap::Controller& controller)
 	if(mainThread.joinable())
 		mainThread.join();
 
-	std::cout << "Disconnected" << std::endl;
+	logging::info() << "[Driver] Disconnected";
 }
 
 /* This function is called by onConnect, and calls process.
@@ -115,7 +115,7 @@ void Driver::process() {
 	 */
 	if (!processMutex.try_lock())
 	{
-		std::cout << "missed";
+		logging::debug()<< "[Driver] missed frame";
 		return;
 	}
     const Leap::Frame frame = controller.frame();
@@ -461,7 +461,7 @@ void Driver::load_config()
 	try{
 		if (!file)
 		{
-			throw std::runtime_error(std::string("Can't open file: ") + std::string(strerror(errno)));
+			throw std::runtime_error(std::string("Can't open the config file \"") + config_path + std::string("\": ") + std::string(strerror(errno)));
 		}
 		j = json::parse(file);
 
@@ -485,11 +485,9 @@ void Driver::load_config()
 		 * Lets catch it and print an error (avoiding killing the whole
 		 * program.
 		 */
-		std::cout << "Something went wrong loading config file:\n"
-				<< "Caught an ios_base::failure.\n"
-				<< "Explanatory string: " << e.what() << "\n"
-				<< "In file:\"" << config_path << "\" \n"
-				<< "loading default!." <<std::endl;
+		logging::error() << "[Driver] Something went wrong while loading the configuration";
+		logging::error() << "[Driver] " << e.what();
+		logging::error() << "[Driver] Loading default!.";
 
 		mouse_move_multipyer = 3;
 		mouse_scroll_multipyer = 1;

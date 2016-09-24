@@ -2,33 +2,55 @@
 #include <Driver.h>
 #include <unistd.h>
 #include <string>
+#include <log.h>
+#include <memory>
 
 int main(int argc, char** argv) {
 
 	std::string config_path;
+	std::string debug_level;
+	std::unique_ptr<leapDriver::Driver> driver;
+	std::unique_ptr<Leap::Controller> controller;
 	int opt;
 
-    while ((opt = getopt(argc, argv, "c:")) != -1) {
+    while ((opt = getopt(argc, argv, "c:d:")) != -1) {
         switch (opt) {
         case 'c':
         	config_path = std::string(optarg);
+            break;
+        case 'd':
+        	debug_level = std::string(optarg);
             break;
         default: /* '?' */
         	break;
         }
     }
 
-	std::cout<< "Starting program" << std::endl;
-    leapDriver::Driver driver(config_path);
+    auto level = severity_from_string(debug_level,
+            nitro::log::severity_level::info);
+    leapDriver::log::set_min_severity_level(level);
 
-    std::cout<< "driver init done"<< std::endl;
+    leapDriver::logging::info()<< "Starting program";
 
-    Leap::Controller controller;
-    std::cout<< "created leap controler"<< std::endl;
+    leapDriver::logging::info()<< "Create driver";
+    try{
+    	driver.reset(new leapDriver::Driver(config_path)) ;
+    } catch(const std::exception& e)
+    {
+    	leapDriver::logging::fatal() << e.what();
+    	leapDriver::logging::fatal() << "Finishing";
+    	driver.reset(nullptr);
 
+    	exit(-1);
+    }
+
+    leapDriver::logging::info()<< "Create leap controller";
+    controller.reset(new Leap::Controller);
+
+
+    leapDriver::logging::info()<< "Add listener";
+    controller->addListener(*driver);
     
-    controller.addListener(driver);
-    std::cout<< "added listener" << std::endl;
 
 
     // Keep this process running until Enter is pressed
@@ -40,7 +62,7 @@ int main(int argc, char** argv) {
 
     	if (input == "r")
     	{
-    		driver.load_config();
+    		driver->load_config();
     	}
     	if (input == "q")
     	{
@@ -48,10 +70,13 @@ int main(int argc, char** argv) {
     	}
     }
 
+    leapDriver::logging::info()<< "Remove listener";
+    controller->removeListener(*driver);
     
-    controller.removeListener(driver);
-    std::cout<< "removed listener"<< std::endl;
-    
+    leapDriver::logging::info()<< "Delete driver";
+    driver.reset(nullptr);
+    controller.reset(nullptr);
 
+    leapDriver::logging::info()<< "ByBy";
     return 0;
 }

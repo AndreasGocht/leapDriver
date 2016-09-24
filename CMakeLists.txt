@@ -9,6 +9,8 @@ set(LEAP_SDK_ROOT ../LeapSDK)
 find_package (Threads)
 
 SET(JSON "external/json")
+SET(NITRO "external/nitro")
+
 
 include_directories(include/)
 
@@ -18,6 +20,11 @@ find_library(LEAP_LIB Leap HINTS ${LEAP_SDK_ROOT}/lib/x64/)
 message(STATUS "Looking for json")
 execute_process(COMMAND git submodule update --init "${CMAKE_SOURCE_DIR}/${JSON}")
 include_directories(${JSON}/src)
+
+message(STATUS "Looking for nitro")
+execute_process(COMMAND git submodule update --init "${CMAKE_SOURCE_DIR}/${NITRO}")
+include_directories(${NITRO}/include)
+
 
 set(SRC
     src/Driver.cpp

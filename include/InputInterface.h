@@ -18,7 +18,7 @@ namespace leapDriver{
 	{
 	public:
 		InputInterfaceError(std::string what_arg, int err)
-		: std::runtime_error(what_arg + std::string(": ") +  std::string(": ") + std::string(strerror(err)))
+		: std::runtime_error(std::string("InputInterfaceError: ") + what_arg + std::string(", ") + std::string(strerror(err)))
 		{
 		}
 	};
@@ -26,7 +26,7 @@ namespace leapDriver{
 	class InputInterface {
 	public:
 		InputInterface();
-		virtual ~InputInterface();
+		~InputInterface();
 
 		void btn_left_click();
 		void btn_left_release();
