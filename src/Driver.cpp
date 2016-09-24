@@ -17,18 +17,20 @@ namespace leapDriver
 
 using json = nlohmann::json;
 
-Driver::Driver():
+Driver::Driver(bool service):
 		Listener(),
 		config_path(""),
-		connected(false)
+		connected(false),
+		service(service)
 {
 	load_config();
 }
 
-Driver::Driver(std::string config_path):
+Driver::Driver(std::string config_path,bool service):
 		Listener(),
 		config_path(config_path),
-		connected(false)
+		connected(false),
+		service(service)
 {
 	load_config();
 }
@@ -74,23 +76,50 @@ void Driver::onDisconnect(const Leap::Controller& controller)
 	logging::info() << "[Driver] Disconnected";
 }
 
-/* This function is called by onConnect, and calls process.
+/*starts the class if run as service
  *
- * This function runs as long as connected is true.
- * connected is set by onConnect and onDisconnect.
+ */
+void Driver::start()
+{
+	mainThread = std::thread(&Driver::run,this);
+	mainThread.join();
+}
+
+
+/* This is the main running function.
+ *
+ * It is called by onConnect or by the start() function,
+ * if this is a service.
+ *
+ * If this class is not run as a service, this function
+ * runs as long as connected is true. connected is set by
+ * onConnect and onDisconnect.
  *
  * The function gets the current timepoint, calls process, and
  * then sleeps timepoint + 20 ms
+ *
+ * If this function is run as a Service, it checks if the
+ * controller is connected. If so, it behaves like the non service
+ * variant. If it is not connectes, it sleeps for 1 second.
+ * and checks again.
  *
  *
  */
 void Driver::run()
 {
-	while(connected)
+	while(connected || service)
 	{
-		auto get_next_frame = std::chrono::steady_clock::now() + std::chrono::milliseconds(20);
-		process();
-		std::this_thread::sleep_until(get_next_frame);
+		if(controller.isConnected())
+		{
+			auto get_next_frame = std::chrono::steady_clock::now() + std::chrono::milliseconds(20);
+			process();
+			std::this_thread::sleep_until(get_next_frame);
+		}
+		else
+		{
+			std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		}
+
 	}
 }
 

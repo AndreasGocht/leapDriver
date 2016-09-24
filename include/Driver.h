@@ -63,14 +63,15 @@ struct spherical{
 
 class Driver:public Leap::Listener {
 public:
-	Driver();
-	Driver(std::string config_path);
+	Driver(bool service=false);
+	Driver(std::string config_path,bool service=false);
 	virtual ~Driver();
 
     virtual void onConnect(const Leap::Controller& );
     virtual void onDisconnect(const Leap::Controller& );
 
     void run();
+    void start();
 
     void process();
     void mouse_movement(Leap::Finger);
@@ -106,6 +107,7 @@ private:
     std::mutex processMutex;
     std::mutex connectionMutex;
     std::atomic_bool connected;
+    std::atomic_bool service;
 
     /**changing values */
     /** common moving values for mouse and doubletap */
