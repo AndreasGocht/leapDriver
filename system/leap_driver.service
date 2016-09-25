@@ -4,6 +4,7 @@ Requires=leapd.service
 
 [Service]
 Type=simple
+Restart=on-failure
 ExecStart=/usr/local/bin/leapdriver -c /etc/leap_driver_config.json -d INFO -s true
 
 [Install]

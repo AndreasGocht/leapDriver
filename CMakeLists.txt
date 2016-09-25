@@ -58,4 +58,4 @@ install(CODE "
     MESSAGE(\"Register with systemd.\")
     execute_process(COMMAND systemctl enable leapd.service)
     execute_process(COMMAND systemctl enable leap_driver.service)
-    execute_process(COMMAND systemctl start leap_driver.service)")
+    execute_process(COMMAND systemctl restart leap_driver.service)")
