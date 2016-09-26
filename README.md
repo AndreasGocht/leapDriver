@@ -11,7 +11,7 @@ To compile leapDriver you need the Leap Motion SDK. You can download it from:
 
 https://developer.leapmotion.com/v2
 
-You need to install the provides 64 bit Debian package (I haven't tested with 32bit).
+You need to install the provided 64 bit Debian package (I haven't tested with 32bit).
 
 Next you need to put the "LeapSDK" folder under "external/" 
  
@@ -35,7 +35,7 @@ To install type
 The leapDriver should work now. If not, please create a ticket at guthub.
 
 # Run
-If you installed the driver with "make install" this is not necessary
+If you installed the driver with "make install" this is not necessary.
 ```
   sudo chmod a+rw /dev/uinput
   sudo leapd &
@@ -69,8 +69,8 @@ If you installed the leapDriver, you need to modify ´/etc/leap_driver_config.js
 ```
 * `mouse_move_multipyer` factor for the speed of the mouse movement (float)
 * `mouse_scroll_multipyer` factor for the speed of the mouse scrolling (float)
-* `mouse_move_smooth_value` modifies the smoothing. More is smoother (int).
-* `mouse_scroll_smooth_value` modifies the smoothing. More is smoother (int).
+* `mouse_move_smooth_value` modifies the smoothing. More is smoother (int)
+* `mouse_scroll_smooth_value` modifies the smoothing. More is smoother (int)
 * `mouse_move_threashold` modifies the value when mouse action is triggered at all
 * `mouse_click_prepare_value` value when the mouse starts to lock
 * `mouse_click_value` value when a click happens
