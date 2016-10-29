@@ -49,9 +49,15 @@ namespace leapDriver{
 		void btn_left_release();
 		void btn_doubletap_click();
 		void btn_doubletap_release();
+		void key_volume_up_click();
+		void key_volume_up_release();
+		void key_volume_down_click();
+		void key_volume_down_release();
+
 		void move_rel_vert_wheel(int dv);
 		void move_rel_hor_wheel(int dh);
 		void move_rel(int dx, int dy);
+
 		void sync();
 
 	private:

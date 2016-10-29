@@ -49,6 +49,11 @@ InputInterface::InputInterface() {
     	throw InputInterfaceError("error ioctl",errno);
     if(ioctl(this->file, UI_SET_KEYBIT, BTN_LEFT) < 0)
     	throw InputInterfaceError("error ioctl",errno);
+    if(ioctl(this->file, UI_SET_KEYBIT, KEY_VOLUMEUP) < 0)
+    	throw InputInterfaceError("error ioctl",errno);
+    if(ioctl(this->file, UI_SET_KEYBIT, KEY_VOLUMEDOWN) < 0)
+    	throw InputInterfaceError("error ioctl",errno);
+
     if(ioctl(this->file, UI_SET_EVBIT, EV_REL) < 0)
     	throw InputInterfaceError("error ioctl",errno);
     if(ioctl(this->file, UI_SET_RELBIT, REL_X) < 0)
@@ -151,6 +156,74 @@ void InputInterface::btn_doubletap_release()
     	throw InputInterfaceError("error write", errno);
 }
 
+/** Sends a button volume up click
+ *
+ */
+void InputInterface::key_volume_up_click()
+{
+    struct input_event     ev;
+	memset(&ev, 0, sizeof(struct input_event));
+
+	ev.type = EV_KEY;
+	ev.code = KEY_VOLUMEUP;
+	ev.value = 1;
+
+	if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+		throw InputInterfaceError("error write", errno);
+
+}
+
+/** Sends a button volume up release
+ *
+ */
+void InputInterface::key_volume_up_release()
+{
+    struct input_event     ev;
+	memset(&ev, 0, sizeof(struct input_event));
+
+	ev.type = EV_KEY;
+	ev.code = KEY_VOLUMEUP;
+	ev.value = 0;
+
+	if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+		throw InputInterfaceError("error write", errno);
+
+}
+
+/** Sends a button volume up click
+ *
+ */
+void InputInterface::key_volume_down_click()
+{
+    struct input_event     ev;
+	memset(&ev, 0, sizeof(struct input_event));
+
+	ev.type = EV_KEY;
+	ev.code = KEY_VOLUMEDOWN;
+	ev.value = 1;
+
+	if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+		throw InputInterfaceError("error write", errno);
+
+}
+
+/** Sends a button volume up release
+ *
+ */
+void InputInterface::key_volume_down_release()
+{
+    struct input_event     ev;
+	memset(&ev, 0, sizeof(struct input_event));
+
+	ev.type = EV_KEY;
+	ev.code = KEY_VOLUMEDOWN;
+	ev.value = 0;
+
+	if(write(this->file, &ev, sizeof(struct input_event)) < 0)
+		throw InputInterfaceError("error write", errno);
+
+}
+
 /** vertical wheel movement
  *
  * @param: vertical movement
@@ -209,6 +282,7 @@ void InputInterface::move_rel(int dx, int dy)
     if(write(this->file, &ev, sizeof(struct input_event)) < 0)
         throw InputInterfaceError("error write", errno);
 }
+
 
 /** Synchronizes the different informations with the kernel.
  *
