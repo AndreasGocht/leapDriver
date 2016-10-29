@@ -104,17 +104,16 @@ int main(int argc, char** argv) {
     }
     
 
-
-    // Keep this process running until Enter is pressed
-    std::string input;
-    while (true)
-    {
-    	if(service)
-    	{
-        	driver->start();
-    	}
-    	else
-    	{
+	if(service)
+	{
+    	driver->start();
+	}
+	else
+	{
+		// Keep this process running until Enter is pressed
+		std::string input;
+		while (true)
+		{
 			std::cout << "Insert \"q\" to quit or \"r\" to reload the config file..." << std::endl;
 			std::getline(std::cin,input);
 

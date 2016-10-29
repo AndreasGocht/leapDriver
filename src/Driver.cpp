@@ -499,6 +499,10 @@ void Driver::gesture(Leap::FingerList fingers)
 
 }
 
+
+/** Loads the configuration from the json file
+ *
+ */
 void Driver::load_config()
 {
 	std::ifstream file(config_path);

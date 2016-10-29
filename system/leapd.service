@@ -3,6 +3,7 @@ Description=Leap Motion Deamon
 
 [Service]
 Type=simple
+Restart=on-failure
 Environment=LC_ALL=C
 ExecStart=/usr/sbin/leapd
 
