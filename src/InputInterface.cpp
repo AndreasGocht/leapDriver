@@ -81,7 +81,7 @@ InputInterface::InputInterface() {
  */
 InputInterface::~InputInterface() {
     if(ioctl(this->file, UI_DEV_DESTROY) < 0)
-    	throw InputInterfaceError("error ioctl", errno);
+    	logging::error() << "error ioctl: " << strerror(errno);
 }
 
 /** Sends a button left click
